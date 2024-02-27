@@ -5,6 +5,7 @@ You can create dynamic route segments by wrapping a folder's name in square brac
 import Form from '@/app/ui/invoices/edit-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 import { fetchCustomers, fetchInvoiceById } from '@/app/lib/data';
+import { notFound } from 'next/navigation';
 
 export default async function Page({ params }: { params: { id: string } }) {
   const invoiceId: string = params.id;
@@ -13,7 +14,12 @@ export default async function Page({ params }: { params: { id: string } }) {
     fetchInvoiceById(invoiceId),
     fetchCustomers(),
   ]);
-  
+
+  if (!invoice) {
+    // Show a specific 404 not-found.tsx page if the invoice is not found
+    notFound();
+  }
+
   return (
     <main>
       <Breadcrumbs
