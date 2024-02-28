@@ -1,7 +1,9 @@
 'use server';
+import { signIn } from '@/auth';
 // mark all the exported functions within the file as server functions. They can be imported into Client and Server components, making them extremely versatile
 
 import { sql } from '@vercel/postgres';
+import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -75,7 +77,11 @@ export async function createInvoice(_: State, formData: FormData) {
   revalidateAndRedirect();
 }
 
-export async function updateInvoice(id: string, prevState: State, formData: FormData) {
+export async function updateInvoice(
+  id: string,
+  prevState: State,
+  formData: FormData,
+) {
   const validatedFields = UpdateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
@@ -130,4 +136,24 @@ function generateErrorWithMessage(operation: OperationType, id?: string) {
   }
 
   return `${message}: ${id}`;
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        // Checkout NextAuth.js errors here: https://errors.authjs.dev/
+        case 'CredentialsSignin':
+          return 'Invalid credentials.';
+        default:
+          return 'Something went wrong.';
+      }
+    }
+    throw error;
+  }
 }
