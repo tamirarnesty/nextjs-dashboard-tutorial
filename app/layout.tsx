@@ -1,5 +1,16 @@
 import '@/app/ui/global.css';
 import { inter } from '@/app/ui/fonts';
+import { Metadata } from 'next';
+
+// Automatically handled by Nextjs and added to the <head> tags in html
+export const metadata: Metadata = {
+  title: {
+    template: '%s | Acme Dashboard Playground',
+    default: 'Acme Dashboard Playground',
+  },
+  description: 'A website to learn and tinker with Nextjs',
+  metadataBase: new URL('https://next-learn-dashboard.vercel.sh'),
+};
 
 export default function RootLayout({
   children,
@@ -8,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <title>Nextjs Tutorial</title>
+      {/* <title>Nextjs Tutorial</title> */}
       <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
   );

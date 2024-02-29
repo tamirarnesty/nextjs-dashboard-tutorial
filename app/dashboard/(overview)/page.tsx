@@ -8,6 +8,11 @@ import {
   RevenueChartSkeleton,
 } from '@/app/ui/skeletons';
 import CardWrapper from '@/app/ui/dashboard/cards';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+};
 
 // NOTE: async is used so that fetching the data can be done in parallel
 export default async function Page() {
