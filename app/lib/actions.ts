@@ -1,5 +1,5 @@
 'use server';
-import { signIn } from '@/auth';
+import { signIn, signOut } from '@/auth';
 // mark all the exported functions within the file as server functions. They can be imported into Client and Server components, making them extremely versatile
 
 import { sql } from '@vercel/postgres';
@@ -38,7 +38,9 @@ export type State = {
   };
   message?: string | null;
 };
-export async function createInvoice(_: State, formData: FormData) {
+
+export async function createInvoice(prevState: State, formData: FormData) {
+  // Validate form using Zod
   const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
@@ -59,7 +61,6 @@ export async function createInvoice(_: State, formData: FormData) {
   // To eliminate JS floating point issues, convert the amount (dollars eg. xx.xx) to cents (eg. xxxxx)
   const amountInCents = amount * 100;
   const currentDate = new Date().toISOString().split('T')[0];
-  console.log({ customerId, amountInCents, status, currentDate });
 
   try {
     await sql`
@@ -69,12 +70,15 @@ export async function createInvoice(_: State, formData: FormData) {
     console.log('Invoice created successfully');
   } catch (error) {
     console.log(error);
-    return generateErrorWithMessage(OperationType.Create);
+    return {
+      message: generateErrorWithMessage(OperationType.Create),
+    };
   }
 
   // Clear the cached route of the invoices page, requiring a new request to be made
   // This will require the invoices list to be re-fetched, and the UI to be updated
-  revalidateAndRedirect();
+  revalidatePath(invoicesPath);
+  redirect(invoicesPath);
 }
 
 export async function updateInvoice(
@@ -104,10 +108,13 @@ export async function updateInvoice(
     WHERE id = ${id}
   `;
   } catch (error) {
-    return generateErrorWithMessage(OperationType.Update, id);
+    return {
+      message: generateErrorWithMessage(OperationType.Update, id),
+    };
   }
 
-  revalidateAndRedirect();
+  revalidatePath(invoicesPath);
+  redirect(invoicesPath);
 }
 
 export async function deleteInvoice(id: string) {
@@ -120,11 +127,6 @@ export async function deleteInvoice(id: string) {
   } catch (error) {
     return generateErrorWithMessage(OperationType.Delete, id);
   }
-}
-
-function revalidateAndRedirect() {
-  revalidatePath(invoicesPath);
-  redirect(invoicesPath);
 }
 
 function generateErrorWithMessage(operation: OperationType, id?: string) {
@@ -156,4 +158,8 @@ export async function authenticate(
     }
     throw error;
   }
+}
+
+export async function logout() {
+  await signOut();
 }
