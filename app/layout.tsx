@@ -19,7 +19,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* <title>Nextjs Tutorial</title> */}
       <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
   );
